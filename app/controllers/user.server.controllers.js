@@ -7,12 +7,12 @@ const create_account = (req, res) => {
 
 // Placeholder for logging in a user
 const login = (req, res) => {
-  res.status(500);
+  res.sendStatus(500);
 };
 
 // Placeholder for getting user details
 const logout = (req, res) => {
-  res.status(500)
+  res.sendStatus(500)
 };
 
 module.exports ={

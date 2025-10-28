@@ -1,16 +1,22 @@
 // Question Controller
 
 // Placeholder for adding a question
-exports.addQuestion = (req, res) => {
-  res.status(501).json({ message: 'addQuestion not implemented' });
+const addQuestion = (req, res) => {
+  return res.sendStatus(500);
 };
 
 // Placeholder for answering a question
-exports.answerQuestion = (req, res) => {
-  res.status(501).json({ message: 'answerQuestion not implemented' });
+const answerQuestion = (req, res) => {
+  return res.sendStatus(500);
 };
 
 // Placeholder for listing questions
-exports.listQuestions = (req, res) => {
-  res.status(501).json({ message: 'listQuestions not implemented' });
+const listQuestions = (req, res) => {
+  return res.sendStatus(500);
+};
+
+module.exports = {
+  addQuestion: addQuestion,
+  answerQuestion: answerQuestion,
+  listQuestions: listQuestions
 };

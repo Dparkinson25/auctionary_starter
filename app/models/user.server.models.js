@@ -1,6 +1,8 @@
 // User Model
 
 const mongoose = require('mongoose');
+const crypto = require('crypto');
+const user = require('../models/user.server.models.js');
 const { token } = require('morgan');
 
 const getHash = (password,salt) => {

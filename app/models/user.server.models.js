@@ -5,6 +5,14 @@ const crypto = require('crypto');
 const user = require('../models/user.server.models.js');
 const { token } = require('morgan');
 
+const userSchema = new mongoose.Schema({
+  first_name: { type: String, required: true },
+  last_name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  salt: { type: String, required: true },
+  session_token: { type: String },
+});
 const getHash = (password,salt) => {
   // Placeholder for password hashing logic
   return crypto.pkdf2Sync(password, salt, 10000, 64, 'sha512').tostring('hex');

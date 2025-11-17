@@ -7,38 +7,58 @@ const { token } = require("morgan");
 const create_account = (req, res) => {
     const salt = crypto.randomBytes(64);
     const hash = getHash(req.body.password, salt);
+
     
 
     const sql = "INSERT INTO users (first_name, last_name, email, password, salt) VALUES (?, ?, ?, ?)";
     let values = [user.first_name, user.last_name, user.email, hash, salt];
 
+
     db.run(sql, values, function(err) {
         if (err) return done(err);
         return res.sendStatus(200);
     });
+    
 };
 
-user.authenticateUser(req.body.email, req.body.password, (err, user) => {
-  if (err) return res.Status(400)
-  user.getToken(userId, (err, token) => {
-    if(token){
-      return res.status(200).send({user_id: id, session_token: token})
-    } else {
-      user.setToken(id,(err, token) => {
-        if(err) return res.sendStatus(500)
-        return res.status(200).send({user_id: id, session_token: token})
-      })
-    }
-  })
-});
+
 // Placeholder for logging in a user
 const login = (req, res) => {
-  res.sendStatus(500);
+  const email = req.body.email;
+  const password = req.body.password; 
+  user.authenticateUser(email, password, (err, userId) => {
+    if (err) {
+      if (err === 404) {
+        return res.sendStatus(401); // Unauthorized
+      }
+      return res.sendStatus(500); // Server error
+    }
+    user.getToken(userId, (err, token) => {
+      if (err) return res.sendStatus(500);
+      if (token) {
+        return res.status(200).json({ user_id: userId, session_token: token });
+      } else {
+        user.setToken(userId, (err, newToken) => {
+          if (err) return res.sendStatus(500);
+          return res.status(200).json({ user_id: userId, session_token: newToken });
+        }); 
+      }
+    });
+  });
 };
 
 // Placeholder for getting user details
 const logout = (req, res) => {
-  res.sendStatus(500)
+  const token = req.get('X-Authorization');
+
+  if (!token) {
+    return res.sendStatus(400).send("Missing token"); // Unauthorized
+  }
+
+  user.removeToken(token, (err) => {
+    if (err) return res.sendStatus(500).send("server error");
+    return res.sendStatus(200);
+  });
 };
 
 module.exports ={

@@ -2,17 +2,19 @@
 
 // Placeholder for adding a question
 const addQuestion = (req, res) => {
-  return res.sendStatus(500);
+  const itemId = req.params.itemId;
 };
 
 // Placeholder for answering a question
 const answerQuestion = (req, res) => {
-  return res.sendStatus(500);
+  const questionId = req.params.questionId;
+  
 };
 
 // Placeholder for listing questions
 const listQuestions = (req, res) => {
-  return res.sendStatus(500);
+  const itemId = req.params.itemId;
+;
 };
 
 module.exports = {

@@ -1,6 +1,9 @@
+import('../lib/authentication');
+
 const express = require('express');
 const router = express.Router();
 const eventController = require('../controllers/event.server.controllers');
+
 
 //Auction event routes
 router.post('/item/:itemId/bid', eventController.addBid);

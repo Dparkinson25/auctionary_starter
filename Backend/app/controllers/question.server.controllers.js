@@ -14,7 +14,7 @@ const answerQuestion = (req, res) => {
 // Placeholder for listing questions
 const listQuestions = (req, res) => {
   const itemId = req.params.itemId;
-;
+
 };
 
 module.exports = {

@@ -5,20 +5,16 @@ const crypto = require('crypto');
 const user = require('../models/user.server.models.js');
 const { token } = require('morgan');
 
-const userSchema = new mongoose.Schema({
-  first_name: { type: String, required: true },
-  last_name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  salt: { type: String, required: true },
-  session_token: { type: String },
-});
+
 const getHash = (password,salt) => {
   // Placeholder for password hashing logic
   return crypto.pkdf2Sync(password, salt, 10000, 64, 'sha512').tostring('hex');
 }
 
-const addNewUser = (user,done) => {
+const UserModel = {
+  addNewUser : (user,done) => {
+  const salt = crypto.randomBytes(64);
+  const Hash = getHash(user.password, salt);
   const sql = "INSERT INTO users (first_name, last_name, email, password, salt) VALUES (?, ?, ?, ?, ?)";
   let values = [user.first_name, user.last_name, user.email, Hash, salt.toString('hex')];  
   db.run(sql, values, function(err) {
@@ -26,14 +22,14 @@ const addNewUser = (user,done) => {
       return done(null);
   });
 
-}
+},
 
-const authenticateUser = (email,password,done) => {
+authenticateUser:(email,password,done) => {
   const sql = 'SELECT user_id, password, salt FROM users WHERE email = ?';
 
   db.get(sql, [email], (err, row) => {
     if (err) return done(err)
-    if (!row) return done(404)
+    if (!row) return done(new error("User not found"));
 
     if (row.salt === null) row.salt = ''
 
@@ -45,33 +41,33 @@ const authenticateUser = (email,password,done) => {
       return done(404);//wrong password
     }
   })
-}
+},
 
-const getToken = (userId, done) => {
+ getToken : (userId, done) => {
   const sql = 'SELECT session_token FROM users WHERE user_id = ?'; 
   db.get(sql, [userId], (err, row) => {
     if (err) return done(err);
     if (!row) return done(404);
     return done(null, row.session_token);
   });
-}
-const setToken = (userId, done) => {
-  let token = crypto.randomBytes(16).toString('hex');
+},
+ setToken : (userId, done) => {
+  const token = crypto.randomBytes(64).toString('hex');
 
   const sql = 'UPDATE users SET session_token = ? WHERE user_id = ?';
   db.run(sql, [token, userId], (err) => {
     if (err) return done(err,token);
   });
-} 
+}, 
 
-const removeToken = (userId, done) => {
+ removeToken : (userId, done) => {
   const sql = 'UPDATE users SET session_token = null WHERE session_token = ?'; 
   db.run(sql, [token], (err) => {
     return done(err);
   }); 
-}
+},
 
-const IsAuthenticated = function(req, res, next) {
+ IsAuthenticated : function(req, res, next) {
   let token = req.get('X-Authorization');
   users.getIdFromToken(token, (err, userId) => {
     const sql = 'SELECT user_id FROM users WHERE session_token = ?';
@@ -82,4 +78,5 @@ const IsAuthenticated = function(req, res, next) {
     next();
   });
 }
-module.exports = mongoose.model('User', userSchema);
+};
+module.exports = mongoose.model('User', userModel);

@@ -1,29 +1,6 @@
 // User Controller
 const crypto = require('crypto');
 const user = require('../models/user.server.models.js');
-<<<<<<< HEAD
-const { token } = require("morgan");
-
-// Placeholder for adding a new user
-const create_account = (req, res) => {
-    const salt = crypto.randomBytes(64);
-    const hash = getHash(req.body.password, salt);
-
-    
-
-    const sql = "INSERT INTO users (first_name, last_name, email, password, salt) VALUES (?, ?, ?, ?)";
-    let values = [user.first_name, user.last_name, user.email, hash, salt];
-
-
-    db.run(sql, values, function(err) {
-        if (err) return done(err);
-        return res.sendStatus(200);
-    });
-    
-};
-
-
-=======
 
 
 // Placeholder for adding a new user
@@ -70,22 +47,10 @@ const create_account = (req, res) => {
   
 };
 
->>>>>>> c65732f4fdcdf6fa4d735dacf89c8ba1d10b8c50
 // Placeholder for logging in a user
 const login = (req, res) => {
   const email = req.body.email;
   const password = req.body.password; 
-<<<<<<< HEAD
-  user.authenticateUser(email, password, (err, userId) => {
-    if (err) {
-      if (err === 404) {
-        return res.sendStatus(401); // Unauthorized
-      }
-      return res.sendStatus(500); // Server error
-    }
-    user.getToken(userId, (err, token) => {
-      if (err) return res.sendStatus(500);
-=======
   if (!email || !password) {
     return res.status(400).json("Missing email or password"); // Bad Request
   }
@@ -98,20 +63,14 @@ const login = (req, res) => {
     }
     user.getToken(userId, (err, token) => {
       if (err& err !== 404) return res.status(500).json({ error_message: "Internal server error" }); // Server error
->>>>>>> c65732f4fdcdf6fa4d735dacf89c8ba1d10b8c50
       if (token) {
         return res.status(200).json({ user_id: userId, session_token: token });
       } else {
         user.setToken(userId, (err, newToken) => {
-<<<<<<< HEAD
-          if (err) return res.sendStatus(500);
-          return res.status(200).json({ user_id: userId, session_token: newToken });
-=======
           if (err) return res.status(500).json({ error_message: "Internal server error" }); // Server error 
 
           return res.status(200).json({ user_id: userId, session_token: newToken });
           
->>>>>>> c65732f4fdcdf6fa4d735dacf89c8ba1d10b8c50
         }); 
       }
     });
@@ -123,21 +82,12 @@ const logout = (req, res) => {
   const token = req.get('X-Authorization');
 
   if (!token) {
-<<<<<<< HEAD
-    return res.sendStatus(400).send("Missing token"); // Unauthorized
-  }
-
-  user.removeToken(token, (err) => {
-    if (err) return res.sendStatus(500).send("server error");
-    return res.sendStatus(200);
-=======
     return res.status(400).json({error_message:"Missing token"}); // Unauthorized
   }
 
   user.removeToken(token, (err) => {
     if (err) return res.status(500).json({error_message:"server error"});
     return res.status(200).json({error_message:"Logged out successfully"});
->>>>>>> c65732f4fdcdf6fa4d735dacf89c8ba1d10b8c50
   });
 };
 

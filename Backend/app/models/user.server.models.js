@@ -1,9 +1,9 @@
 // User Model
 
-const db = require('../../config/database.js');
+const db = require('../../database');
 const crypto = require('crypto');
 const user = require('./user.server.models.js');
-const { token } = require('morgan');
+
 
 
 const getHash = (password,salt) => {
@@ -99,4 +99,10 @@ module.exports = {
   setToken,
   removeToken,
   IsAuthenticated
+};
+exports.getUserById = (userId) => {
+  return { userId, username: 'sampleUser'};
+};
+exports.createUser = (username,email,password) => {
+  return { userId: 1, username, email };
 };

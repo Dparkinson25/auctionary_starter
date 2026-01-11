@@ -1,25 +1,17 @@
-import('../lib/authentication');
-
 const express = require('express');
 const router = express.Router();
-const user = require('../controllers/user.server.controllers');
-
-
-// User routes
-module.exports = function(app) {
-  app.route("/users")
-     .post(user.create_account);
-  app.route("/login")
-     .post(user.login);
-  app.route("/logout")
-     .post(user.logout);
-  app.route("/users/:userId")
-      .get(user.getUserDetails);
-  module.exports = router;
-}
-
+const userController = require('../controllers/user.server.controllers');
 const authenticateUser = require('../lib/authentication');
 
-router.get('protected/userinfo', authenticateUser, (req, res) => {
-    return res.status(200).json({ user_id: req.user._id, email: req.user.email });
-});
+// User routes
+router.post('/users', userController.create_account); // Create a new user
+router.post('/login', userController.login); // User login
+router.post('/logout', authenticateUser, userController.logout); // User logout
+router.get('/users/:userId', authenticateUser, userController.getUserDetails); // Get user details (authenticated)
+router.get('/users', userController.getAllUsers); // Get all users
+
+module.exports = router;
+
+
+
+

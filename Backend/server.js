@@ -27,11 +27,14 @@ app.get('/', (req, res, next) => {
     res.json({'status': 'Alive'});
 });
 
-// Other API endpoints: Links go here...
-// You can uncomment the below three lines as you implement the functionality - we'll discuss this structure in week three.
-require('./app/routes/user.server.routes')(app);
-// require('./app/routes/core.server.routes')(app);
-require('./app/routes/question.server.routes')(app);
+// Other API endpoints: mount routers
+const userRoutes = require('./app/routes/user.server.routes');
+const coreRoutes = require('./app/routes/core.server.routes');
+const questionRoutes = require('./app/routes/question.server.routes');
+
+app.use('/', userRoutes);
+app.use('/', coreRoutes);
+app.use('/', questionRoutes);
 
 
 // Default response for any other request

@@ -1,19 +1,25 @@
-const db = require('../../database');
+const userModel = require('../models/user.server.models');
 
-module.exports= function authenticateUser(req, res, next) {
-    const token = req.get('X-Authorization') || req.headers['x-authorization'];
+const authenticateUser = (req, res, next) => {
+    const token = req.get('X-Authorization');
     if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error_message: 'Missing token' });
     }
-    db.get('SELECT * FROM users WHERE token = ?', [token], (err, user) => {
+
+    userModel.getUserIdFromToken(token, (err, userId) => {
         if (err) {
-            return res.status(500).json({ error: 'Internal server error' });
+            console.error('Error getting user ID from token:', err);
+            return res.status(500).json({ error_message: 'Internal server error' });
         }
-        if (!user) {
-            return res.status(401).json({ error: 'Unauthorized' });
+        if (!userId) {
+            return res.status(401).json({ error_message: 'Invalid token' });
         }
-        req.user = {user_id: row.user_id};
-        next(); 
+        req.user = { id: userId };
+        next();
     });
+};
+
+module.exports = {
+    authenticateUser,
 };
 

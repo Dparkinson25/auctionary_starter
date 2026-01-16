@@ -1,8 +1,9 @@
-// Question Controller
+
 const e = require('express');
 const QuestionModel = require('../models/question.server.models');
+const db = require('../../database');
 
-// Placeholder for adding a question
+
 const addQuestion = (req, res) => {
   const itemId = req.params.itemId;
   const userId = req.user.id; 
@@ -20,7 +21,6 @@ const addQuestion = (req, res) => {
   }
 
   QuestionModel.addQuestionToItem(itemId, userId, question_text, (err,id) => {
-   
     if (err) {
       if (err.message === 'Item not found') {
         return res.status(404).json({ error_message: 'Item not found' });
@@ -33,11 +33,11 @@ const addQuestion = (req, res) => {
       }
       return res.status(500).json({ error_message: 'Failed to add question' });
     }
-    return res.status(201).json({ question_id: questionId });
+    return res.status(200).json({ question_id: id });
   });
 };
 
-// Placeholder for answering a question
+
 const answerQuestion = (req, res) => {
   const questionId = parseInt(req.params.questionId, 10); 
   const { answer_text, ...extraFields } = req.body;
@@ -51,7 +51,8 @@ const answerQuestion = (req, res) => {
   if (!req.body || Object.keys(req.body).length === 0) {
     return  res.status(400).json({ error_message: 'answer is missing' });
   }
-  QuestionModel.answerQuestionById(questionId, answer_text, (err) => {
+  const userId = req.user && req.user.id;
+  QuestionModel.answerQuestionById(questionId, answer_text, userId, (err) => {
     if (err) {
       if (err.message === 'Unauthorized') {
         return res.status(403).json({ error_message: 'Unauthorized to answer this question as user is not the owner' });
@@ -66,17 +67,19 @@ const answerQuestion = (req, res) => {
   
 };
 
-// Placeholder for listing questions
+
 const listQuestions = (req, res) => {
-  const itemId = req.params.itemId;
-  QuestionModel.getQuestionsForItem(itemId, (err, questions) => {
-    if (err) {
-      if (err.message === 'Item not found') {
-        return res.status(404).json({ error_message: 'Item not found' });
-      }
-      return res.status(500).json({ error_message: 'Failed to get questions' });
-    }
-    return res.status(200).json(questions);
+  const itemId = parseInt(req.params.itemId, 10);
+  if (Number.isNaN(itemId)) return res.status(404).json({ error_message: 'Item not found' });
+
+  db.get('SELECT item_id FROM items WHERE item_id = ?', [itemId], (err, row) => {
+    if (err) return res.status(500).json({ error_message: 'Failed to get questions' });
+    if (!row) return res.status(404).json({ error_message: 'Item not found' });
+
+    QuestionModel.getQuestionsForItem(itemId, (err, questions) => {
+      if (err) return res.status(500).json({ error_message: 'Failed to get questions' });
+      return res.status(200).json(questions || []);
+    });
   });
 
 };

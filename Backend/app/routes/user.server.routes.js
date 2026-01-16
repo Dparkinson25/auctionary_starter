@@ -4,12 +4,12 @@ const userController = require('../controllers/user.server.controllers');
 const { authenticateUser } = require('../lib/authentication');
 
 
-router.post('/users', userController.create_account); // Create a new user
-router.post('/login', userController.login); // User login
-router.post('/logout', authenticateUser, userController.logout); // User logout
+router.post('/users', userController.create_account); 
+router.post('/login', userController.login); 
+router.post('/logout', authenticateUser, userController.logout); 
 
 router.get('/users/:userId', userController.getUserDetails);
-router.get('/users', userController.getAllUsers); // Get all users
+router.get('/users', userController.getAllUsers); 
 
 module.exports = router;
 

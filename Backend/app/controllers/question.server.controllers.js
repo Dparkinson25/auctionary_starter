@@ -2,6 +2,7 @@
 const e = require('express');
 const QuestionModel = require('../models/question.server.models');
 const db = require('../../database');
+const { clean, containsProfanity } = require('../lib/profanity');
 
 
 const addQuestion = (req, res) => {
@@ -13,14 +14,20 @@ const addQuestion = (req, res) => {
     return  res.status(400).json({ error_message: 'question is missing' });
   }
   if (Object.keys(extraFields).length > 0) {
-    return res.status(400).json({error_message : "extra fields detected in request body."}); // Bad Request
+    return res.status(400).json({error_message : "extra fields detected in request body."}); 
   } 
 
   if (!question_text || question_text.trim() === '') {
     return res.status(400).json({ error_message: 'Question text is required' });
   }
 
-  QuestionModel.addQuestionToItem(itemId, userId, question_text, (err,id) => {
+  // check question text
+  const safeQuestion = clean(question_text);
+  if (containsProfanity(question_text)) {
+    console.log('Profanity detected in question; sanitized for user:', userId);
+  }
+
+  QuestionModel.addQuestionToItem(itemId, userId, safeQuestion, (err,id) => {
     if (err) {
       if (err.message === 'Item not found') {
         return res.status(404).json({ error_message: 'Item not found' });
@@ -52,7 +59,12 @@ const answerQuestion = (req, res) => {
     return  res.status(400).json({ error_message: 'answer is missing' });
   }
   const userId = req.user && req.user.id;
-  QuestionModel.answerQuestionById(questionId, answer_text, userId, (err) => {
+  // check answer text
+  const safeAnswer = clean(answer_text);
+  if (containsProfanity(answer_text)) {
+    console.log('Profanity detected in answer; sanitized for user:', userId);
+  }
+  QuestionModel.answerQuestionById(questionId, safeAnswer, userId, (err) => {
     if (err) {
       if (err.message === 'Unauthorized') {
         return res.status(403).json({ error_message: 'Unauthorized to answer this question as user is not the owner' });

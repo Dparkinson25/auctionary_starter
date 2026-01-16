@@ -1,5 +1,6 @@
 const coreModel = require('../models/core.server.models');
 const db = require('../../database');
+const { clean, containsProfanity } = require('../lib/profanity');
 
 const searchItems = (req, res) => {
   const q = req.query.q || null;
@@ -11,7 +12,7 @@ const searchItems = (req, res) => {
 
   const send400 = (msg) => res.status(400).json({ error_message: msg || 'Bad request' });
 
-  // Validate status
+  
   const allowedStatus = [null, 'OPEN', 'BID', 'ARCHIVE'];
   if (!allowedStatus.includes(status)) return send400('status not recognised');
 
@@ -23,7 +24,7 @@ const searchItems = (req, res) => {
     params.push(`%${q}%`, `%${q}%`);
   }
 
-  // Helper to execute final query
+  
   const execQuery = (whereClause, p, cb) => {
     const sql = `SELECT i.item_id, i.name, i.description, i.end_date, i.creator_id, u.first_name, u.last_name FROM items i JOIN users u ON i.creator_id = u.user_id ${whereClause} ORDER BY i.item_id ASC LIMIT ? OFFSET ?`;
     p.push(limit, offset);
@@ -33,13 +34,13 @@ const searchItems = (req, res) => {
     });
   };
 
-  // No status filter -> return all items (paginated)
+  
   if (!status) {
     const where = baseWhere.length ? 'WHERE ' + baseWhere.join(' AND ') : '';
     return execQuery(where, params.slice());
   }
 
-  // For status filters, require authentication
+  // require authentication
   if (!userToken) return send400('status filter requires authentication');
 
   // Resolve token to user id
@@ -62,7 +63,7 @@ const searchItems = (req, res) => {
     }
 
     if (status === 'BID') {
-      // Items current user has bid on
+      // Items user has bid on
       const where = 'WHERE i.item_id IN (SELECT b.item_id FROM bids b WHERE b.user_id = ?)' + (baseWhere.length ? ' AND ' + baseWhere.join(' AND ') : '');
       const p = [userId].concat(params);
       return execQuery(where, p);
@@ -85,13 +86,20 @@ const addItem = (req, res) => {
   const userId = req.user && req.user.id;
   if (!userId) return res.status(401).json({ error_message: 'Unauthorized' });
 
-  const newItem = { name, description, starting_bid: Number(starting_bid), start_date: Date.now(), end_date };
+  // Sanitize text fields to remove/replace profanity
+  const safeName = clean(name || '');
+  const safeDescription = clean(description || '');
+  if (containsProfanity(name) || containsProfanity(description)) {
+    console.log('Profanity detected in new item; sanitized before save for user:', req.user && req.user.id);
+  }
 
-  // Validate starting_bid is numeric and non-negative
+  const newItem = { name: safeName, description: safeDescription, starting_bid: Number(starting_bid), start_date: Date.now(), end_date };
+
+  
   const numericStarting = Number(starting_bid);
   if (!Number.isFinite(numericStarting) || numericStarting < 0) return res.status(400).json({ error_message: 'starting_bid must be a non-negative number' });
 
-  // Validate end_date is a valid timestamp (in ms) and in the future
+ 
   const numericEnd = Number(end_date);
   const now = Date.now();
   if (!Number.isFinite(numericEnd) || numericEnd <= now) return res.status(400).json({ error_message: 'end_date must be a valid future timestamp' });

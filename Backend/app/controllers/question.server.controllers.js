@@ -7,15 +7,20 @@ const { clean, containsProfanity } = require('../lib/profanity');
 
 const addQuestion = (req, res) => {
   const itemId = req.params.itemId;
-  const userId = req.user.id; 
-  const { question_text, ...extraFields } = req.body;
-  
-  if(!req.body || Object.keys(req.body).length === 0) {
-    return  res.status(400).json({ error_message: 'question is missing' });
+  const userId = req.user.id;
+  const rawBody = req.body || {};
+
+  if (!rawBody || Object.keys(rawBody).length === 0) {
+    return res.status(400).json({ error_message: 'question is missing' });
   }
-  if (Object.keys(extraFields).length > 0) {
-    return res.status(400).json({error_message : "extra fields detected in request body."}); 
-  } 
+
+ 
+  const question_text = (rawBody.question_text || '').toString();
+  const allowedKeys = ['question_text'];
+  const extraKeys = Object.keys(rawBody).filter(k => !allowedKeys.includes(k));
+  if (extraKeys.length > 0) {
+    return res.status(400).json({ error_message: 'extra fields detected in request body.' });
+  }
 
   if (!question_text || question_text.trim() === '') {
     return res.status(400).json({ error_message: 'Question text is required' });
@@ -46,18 +51,24 @@ const addQuestion = (req, res) => {
 
 
 const answerQuestion = (req, res) => {
-  const questionId = parseInt(req.params.questionId, 10); 
-  const { answer_text, ...extraFields } = req.body;
+  const questionId = parseInt(req.params.questionId, 10);
+  const rawBody = req.body || {};
+
+  if (!rawBody || Object.keys(rawBody).length === 0) {
+    return res.status(400).json({ error_message: 'answer is missing' });
+  }
+
+  const answer_text = (rawBody.answer_text || '').toString();
+  const allowedKeys = ['answer_text'];
+  const extraKeys = Object.keys(rawBody).filter(k => !allowedKeys.includes(k));
+  if (extraKeys.length > 0) {
+    return res.status(400).json({ error_message: 'extra fields detected in request body.' });
+  }
 
   if (!answer_text || answer_text.trim() === '') {
     return res.status(400).json({ error_message: 'Answer text is required' });
   }
-  if (Object.keys(extraFields).length > 0) {
-    return res.status(400).json({error_message : "extra fields detected in request body."}); // Bad Request
-  }
-  if (!req.body || Object.keys(req.body).length === 0) {
-    return  res.status(400).json({ error_message: 'answer is missing' });
-  }
+
   const userId = req.user && req.user.id;
   // check answer text
   const safeAnswer = clean(answer_text);
